@@ -15,7 +15,7 @@ Data Source: Electronic health records (EHR) from ICU patients across two U.S. h
 
 Data Cleaning:
 
-Inspected and visualized missingness; dropped temperature due to >60% missing data.
+Inspected and visualiaed missingness; dropped temperature due to >60% missing data.
 Imputed missing values (O₂Sat, HR, SBP, DBP, Resp, MAP) using time-aware single imputation.
 Transformed data from long to wide format; created a binary sepsislabel outcome variable.
 
