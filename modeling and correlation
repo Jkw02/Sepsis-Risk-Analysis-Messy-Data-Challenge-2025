@@ -1,0 +1,67 @@
+> # 7. Sensitivity analyses you could perform to test assumptions
+> 
+> #Calculate the different weight based on the class for unbalanced class
+> # Inverse Frequency Weighting -> for unbalanced data class
+> class_weights <- icu_first2 %>%
++   count(sepsislabel) %>%
++   mutate(weight = (1/n) / sum(1/n)) 
+> 
+> model_sens <- glm(
++   sepsislabel ~ o2sat + age + gender + hr + sbp + resp,
++   data = icu_first2,
++   family = binomial(),
++   weights = ifelse(sepsislabel == 1, class_weights$weight[2], class_weights$weight[1])
++ )
+Warning message:
+In eval(family$initialize) : non-integer #successes in a binomial glm!
+> summary(model_sens)
+
+Call:
+glm(formula = sepsislabel ~ o2sat + age + gender + hr + sbp + 
+    resp, family = binomial(), data = icu_first2, weights = ifelse(sepsislabel == 
+    1, class_weights$weight[2], class_weights$weight[1]))
+
+Deviance Residuals: 
+    Min       1Q   Median       3Q      Max  
+-0.4510  -0.2822  -0.2580  -0.2349   1.8438  
+
+Coefficients:
+             Estimate Std. Error z value Pr(>|z|)    
+(Intercept) -4.265120   1.204871  -3.540 0.000400 ***
+o2sat        0.027107   0.011587   2.340 0.019307 *  
+age          0.004527   0.002268   1.996 0.045956 *  
+gender       0.229745   0.074547   3.082 0.002057 ** 
+hr           0.015212   0.002143   7.100 1.25e-12 ***
+sbp         -0.005058   0.001562  -3.238 0.001203 ** 
+resp         0.026326   0.007115   3.700 0.000216 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 4234.7  on 30683  degrees of freedom
+Residual deviance: 4132.7  on 30677  degrees of freedom
+  (241 observations deleted due to missingness)
+AIC: 2219.4
+
+Number of Fisher Scoring iterations: 4
+
+> 
+> 
+> or_ci_weighted <- tidy(model_sens, exponentiate = TRUE, conf.int = TRUE) %>%
++   select(term, estimate, conf.low, conf.high, p.value)
+There were 50 or more warnings (use warnings() to see the first 50)
+> 
+> print("Weighted Model OR and 95% CI:")
+[1] "Weighted Model OR and 95% CI:"
+> print(or_ci_weighted)
+# A tibble: 7 × 5
+  term        estimate conf.low conf.high  p.value
+  <chr>          <dbl>    <dbl>     <dbl>    <dbl>
+1 (Intercept)   0.0141  0.00124     0.141 4.00e- 4
+2 o2sat         1.03    1.01        1.05  1.93e- 2
+3 age           1.00    1.00        1.01  4.60e- 2
+4 gender        1.26    1.09        1.46  2.06e- 3
+5 hr            1.02    1.01        1.02  1.25e-12
+6 sbp           0.995   0.992       0.998 1.20e- 3
+7 resp          1.03    1.01        1.04  2.16e- 4
